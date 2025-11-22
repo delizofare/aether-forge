@@ -14,7 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      execution_steps: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          id: string
+          status: string
+          step_number: number
+          task_id: string
+          tool_input: Json
+          tool_name: string
+          tool_output: Json | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          step_number: number
+          task_id: string
+          tool_input: Json
+          tool_name: string
+          tool_output?: Json | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          step_number?: number
+          task_id?: string
+          tool_input?: Json
+          tool_name?: string
+          tool_output?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_steps_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scraped_data: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          metadata: Json | null
+          task_id: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          metadata?: Json | null
+          task_id?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scraped_data_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          error: string | null
+          id: string
+          priority: string | null
+          result: Json | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          id?: string
+          priority?: string | null
+          result?: Json | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          error?: string | null
+          id?: string
+          priority?: string | null
+          result?: Json | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -134,7 +134,15 @@ const Agent = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Orchestrator error:', error);
+        throw new Error(error.message || 'Failed to execute task');
+      }
+
+      if (data?.error) {
+        console.error('Orchestrator returned error:', data.error);
+        throw new Error(data.error);
+      }
 
       setResult(data.summary);
       
@@ -146,9 +154,18 @@ const Agent = () => {
       subscription.unsubscribe();
     } catch (error: any) {
       console.error('Error:', error);
+      
+      // Show specific error message
+      const errorMessage = error.message || 'An unexpected error occurred';
+      const errorDetails = errorMessage.includes('API key') 
+        ? 'Please check your API key configuration'
+        : errorMessage.includes('planning') || errorMessage.includes('Step')
+        ? 'The agent encountered an issue during execution'
+        : 'Please try again or contact support';
+
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Task Failed",
+        description: `${errorMessage}. ${errorDetails}`,
         variant: "destructive"
       });
     } finally {
@@ -254,7 +271,7 @@ const Agent = () => {
               <div className="space-y-3">
                 {steps.map((step, idx) => (
                   <div key={step.id} className="p-3 bg-muted rounded-lg">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="font-medium">Step {idx + 1}: {step.tool_name}</span>
                       <span className={`text-sm px-2 py-1 rounded ${
                         step.status === 'completed' ? 'bg-green-500/20 text-green-500' :
@@ -264,6 +281,16 @@ const Agent = () => {
                         {step.status}
                       </span>
                     </div>
+                    {step.error && (
+                      <div className="text-sm text-red-500 mt-2">
+                        Error: {step.error}
+                      </div>
+                    )}
+                    {step.status === 'executing' && (
+                      <div className="text-sm text-muted-foreground mt-2">
+                        Running...
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

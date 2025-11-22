@@ -263,7 +263,7 @@ async function createPlan(userInput: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-3.5-sonnet',
+      model: 'deepseek/deepseek-r1-0528:free',
       messages: [
         {
           role: 'system',
@@ -508,7 +508,7 @@ async function generateSummary(userInput: string, results: any[]) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-3.5-sonnet',
+      model: 'deepseek/deepseek-r1-0528:free',
       messages: [
         {
           role: 'system',

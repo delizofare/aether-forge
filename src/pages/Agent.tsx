@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Play, Volume2 } from "lucide-react";
+import { Loader2, Play, Volume2, Mic, MicOff } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
@@ -15,7 +15,70 @@ const Agent = () => {
   const [steps, setSteps] = useState<any[]>([]);
   const [result, setResult] = useState<string>("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result) => result.transcript)
+          .join('');
+        setInput(transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast({
+          title: "Voice input error",
+          description: "Could not capture voice input. Please try again.",
+          variant: "destructive"
+        });
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
+
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "Not supported",
+        description: "Voice input is not supported in your browser",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+      toast({
+        title: "Listening...",
+        description: "Speak now to input your task"
+      });
+    }
+  };
 
   const handleSubmit = async () => {
     if (!input.trim()) {
@@ -135,13 +198,35 @@ const Agent = () => {
           </div>
 
           <Card className="p-6 space-y-4">
-            <Textarea
-              placeholder="Example: Find the top 5 AI companies, get their latest funding rounds, and summarize their recent news..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="min-h-32"
-              disabled={isProcessing}
-            />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Textarea
+                  placeholder="Example: Find the top 5 AI companies, get their latest funding rounds, and summarize their recent news..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="min-h-32 flex-1"
+                  disabled={isProcessing || isListening}
+                />
+                <Button
+                  variant={isListening ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={toggleVoiceInput}
+                  disabled={isProcessing}
+                  className="h-auto"
+                >
+                  {isListening ? (
+                    <MicOff className="h-5 w-5" />
+                  ) : (
+                    <Mic className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+              {isListening && (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  🎤 Listening...
+                </p>
+              )}
+            </div>
             
             <Button 
               onClick={handleSubmit} 
